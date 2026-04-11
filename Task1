@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Converter Pro Chat UI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Segoe UI',sans-serif;
+}
+
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;
+}
+
+/* Character positioning */
+.character{
+  position:absolute;
+  bottom:40px;
+  width:260px;
+  text-align:center;
+}
+
+.left-character{ left:20px; }
+.right-character{ right:20px; bottom:105px; }
+
+.character img{
+  display:block;
+  margin:auto;
+}
+
+.left-character img{ width:260px; }
+.right-character img{ width:210px; }
+
+/* Chat bubble */
+.chat{
+  position:absolute;
+  bottom:100%;
+  left:50%;
+  transform:translateX(-50%);
+  margin-bottom:12px;
+
+  background:#7ed6df;
+  color:#000;
+  padding:12px;
+  border-radius:15px;
+  font-size:15px;
+  max-width:220px;
+}
+
+.left-character .chat{ margin-bottom:-35px; }
+
+.chat::after{
+  content:"";
+  position:absolute;
+  top:100%;
+  left:50%;
+  transform:translateX(-50%);
+  border:10px solid transparent;
+  border-top-color:inherit;
+}
+
+.right-character .chat{ background:#81ecec; }
+
+/* Main card */
+.card{
+  backdrop-filter:blur(12px);
+  background:rgba(255,255,255,0.15);
+  border-radius:18px;
+  padding:22px;
+  width:340px;
+  text-align:center;
+  box-shadow:0 8px 25px rgba(0,0,0,0.3);
+}
+
+h1{ font-size:20px; margin-bottom:12px; }
+
+input{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  margin:10px 0;
+}
+
+/* Unit buttons */
+.buttons{
+  display:flex;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.buttons button{
+  flex:1;
+  padding:8px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:rgba(255,255,255,0.3);
+  color:white;
+}
+
+.buttons button.active,
+.buttons button:hover{
+  background:white;
+  color:#333;
+}
+
+/* Thermometer */
+.thermometer{
+  width:22px;
+  height:110px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.3);
+  margin:10px auto;
+  overflow:hidden;
+  position:relative;
+}
+
+.mercury{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  background:#ff4757;
+  height:0%;
+  transition:0.5s;
+}
+
+.result{
+  font-size:14px;
+  margin:8px 0;
+}
+</style>
+</head>
+
+<body>
+
+<!-- User (Man) -->
+<div class="character left-character">
+  <div class="chat" id="userMsg">Enter value...</div>
+  <img src="man.png" alt="man">
+</div>
+
+<!-- Bot -->
+<div class="character right-character">
+  <div class="chat" id="botMsg">Result will appear</div>
+  <img src="bot.png" alt="robot">
+</div>
+
+<!-- Converter UI -->
+<div class="card">
+  <h1>🌡️ Converter Pro</h1>
+
+  <input type="number" id="tempInput" placeholder="Enter temperature" oninput="convert()">
+
+  <div class="buttons">
+    <button onclick="setUnit('c')" id="cBtn" class="active">°C</button>
+    <button onclick="setUnit('f')" id="fBtn">°F</button>
+    <button onclick="setUnit('k')" id="kBtn">K</button>
+  </div>
+
+  <div class="thermometer">
+    <div class="mercury" id="mercury"></div>
+  </div>
+
+  <div class="result" id="result"></div>
+  <canvas id="chart" height="120"></canvas>
+</div>
+
+<script>
+let unit='c';
+let chart;
+
+/* Change temperature unit */
+function setUnit(u){
+  unit=u;
+  document.querySelectorAll('.buttons button')
+    .forEach(btn=>btn.classList.remove('active'));
+  document.getElementById(u+'Btn').classList.add('active');
+  convert();
+}
+
+/* Convert temperature and update UI */
+function convert(){
+  const temp=parseFloat(tempInput.value);
+
+  if(isNaN(temp)){
+    result.innerHTML="Enter valid number";
+    userMsg.innerHTML="Please enter value";
+    botMsg.innerHTML="...";
+    mercury.style.height="0%";
+    return;
+  }
+
+  let c,f,k;
+
+  if(unit==='c'){
+    c=temp; f=(c*9/5)+32; k=c+273.15;
+    userMsg.innerHTML=`What is ${temp}°C in other units?`;
+  } else if(unit==='f'){
+    f=temp; c=(f-32)*5/9; k=c+273.15;
+    userMsg.innerHTML=`What is ${temp}°F in other units?`;
+  } else {
+    k=temp; c=k-273.15; f=(c*9/5)+32;
+    userMsg.innerHTML=`What is ${temp}K in other units?`;
+  }
+
+  botMsg.innerHTML=`F: ${f.toFixed(2)}°<br>K: ${k.toFixed(2)}`;
+  result.innerHTML=`C: ${c.toFixed(2)}° | F: ${f.toFixed(2)}° | K: ${k.toFixed(2)}`;
+
+  /* Update thermometer */
+  const percent=Math.min(Math.max((c+50)/150*100,0),100);
+  mercury.style.height=percent+"%";
+
+  updateChart(c,f,k);
+}
+
+/* Update chart visualization */
+function updateChart(c,f,k){
+  if(chart) chart.destroy();
+
+  chart=new Chart(chartEl,{
+    type:'line',
+    data:{
+      labels:['Celsius','Fahrenheit','Kelvin'],
+      datasets:[{ label:'Temperature', data:[c,f,k] }]
+    }
+  });
+}
+
+const chartEl=document.getElementById('chart');
+</script>
+
+</body>
+</html>

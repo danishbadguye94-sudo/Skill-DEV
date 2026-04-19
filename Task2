@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Number Guessing Game</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a0818;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 1.5rem;
+    }
+
+    #root {
+      width: 100%;
+      max-width: 440px;
+      min-height: 500px;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      border-radius: 20px;
+      padding: 2rem 1.5rem;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    }
+    #root::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(130,80,255,.4), transparent 70%);
+      pointer-events: none;
+    }
+    #root::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; right: -40px;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(0,200,180,.28), transparent 70%);
+      pointer-events: none;
+    }
+
+    h1 { font-size: 22px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+    .sub { font-size: 13px; text-align: center; color: rgba(255,255,255,.55); margin-bottom: 1.75rem; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* BUTTONS */
+    .btn-primary {
+      display: block; width: 100%; padding: 15px;
+      border-radius: 12px; background: #7c4dff; border: none;
+      color: #fff; font-size: 17px; font-weight: 600;
+      cursor: pointer; letter-spacing: .5px;
+      transition: background .2s, transform .1s;
+    }
+    .btn-primary:hover { background: #9c6fff; }
+    .btn-primary:active { transform: scale(.98); }
+
+    .btn-secondary {
+      display: block; width: 100%; padding: 12px;
+      border-radius: 12px; background: transparent;
+      border: 1.5px solid rgba(255,255,255,.25);
+      color: rgba(255,255,255,.8); font-size: 15px; font-weight: 500;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.45); color: #fff; }
+
+    /* START SCREEN */
+    .diff-label { font-size: 13px; color: rgba(255,255,255,.65); margin-bottom: 10px; font-weight: 500; }
+    .diff-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 1.5rem; }
+    .diff-card {
+      padding: 14px 8px; border-radius: 14px; text-align: center;
+      cursor: pointer; border: 2px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06); transition: all .2s; user-select: none;
+    }
+    .diff-card:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.25); }
+    .diff-card.selected { border-color: #a47fff; background: rgba(130,80,255,.25); }
+    .diff-card .d-icon { font-size: 22px; margin-bottom: 6px; }
+    .diff-card .d-name { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 3px; }
+    .diff-card .d-range { font-size: 11px; color: rgba(255,255,255,.5); }
+    .diff-card.selected .d-range { color: #c8aaff; }
+
+    .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+    .info-box { padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); }
+    .info-box .i-label { font-size: 11px; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 4px; }
+    .info-box .i-val { font-size: 18px; font-weight: 600; color: #c8aaff; }
+
+    /* GAME SCREEN */
+    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 1.25rem; }
+    .stat { padding: 10px 6px; border-radius: 12px; text-align: center; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); }
+    .stat .lbl { font-size: 10px; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 3px; }
+    .stat .val { font-size: 20px; font-weight: 600; color: #fff; }
+    .stat .val.warn { color: #ff6b6b; }
+
+    .hint { font-size: 12px; color: rgba(255,255,255,.4); text-align: center; margin-bottom: .75rem; }
+    .input-row { display: flex; gap: 10px; margin-bottom: 1rem; }
+    #guess-input {
+      flex: 1; padding: 12px 14px;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2);
+      border-radius: 10px; color: #fff; font-size: 16px; outline: none;
+    }
+    #guess-input::placeholder { color: rgba(255,255,255,.3); }
+    #guess-input:focus { border-color: #a47fff; }
+
+    #guess-btn {
+      padding: 12px 22px; border-radius: 10px;
+      background: #7c4dff; border: none; color: #fff;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: background .2s, transform .1s;
+    }
+    #guess-btn:hover { background: #9c6fff; }
+    #guess-btn:active { transform: scale(.97); }
+
+    .feedback {
+      padding: 14px; border-radius: 14px; text-align: center;
+      min-height: 54px; display: flex; align-items: center;
+      justify-content: center; flex-direction: column; margin-bottom: 1rem;
+    }
+    .feedback .msg { font-size: 17px; font-weight: 600; }
+    .feedback .hint2 { font-size: 12px; color: rgba(255,255,255,.55); margin-top: 3px; }
+    .f-idle { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15); }
+    .f-low  { background: rgba(255,160,50,.2);  border: 1px solid rgba(255,160,50,.4); }
+    .f-high { background: rgba(255,80,80,.2);   border: 1px solid rgba(255,80,80,.4); }
+    .f-win  { background: rgba(0,220,140,.2);   border: 1px solid rgba(0,220,140,.45); }
+    .f-over { background: rgba(255,60,60,.2);   border: 1px solid rgba(255,60,60,.45); }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 26px; margin-bottom: .75rem; }
+    .chip { font-size: 12px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+    .c-low  { background: rgba(255,160,50,.25); color: #ffb347; border: 1px solid rgba(255,160,50,.3); }
+    .c-high { background: rgba(255,80,80,.2);   color: #ff8080; border: 1px solid rgba(255,80,80,.3); }
+    .c-win  { background: rgba(0,220,140,.2);   color: #00dc8c; border: 1px solid rgba(0,220,140,.35); }
+
+    .game-bottom { display: flex; justify-content: space-between; align-items: center; }
+    .hs { font-size: 12px; color: rgba(255,255,255,.45); }
+    .hs span { color: #c8aaff; font-weight: 600; }
+    #quit-btn {
+      font-size: 12px; padding: 6px 14px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.25); background: transparent;
+      color: rgba(255,255,255,.6); cursor: pointer; transition: all .2s;
+    }
+    #quit-btn:hover { color: #fff; border-color: rgba(255,255,255,.5); }
+
+    /* RESULT SCREEN */
+    .result-icon { font-size: 52px; text-align: center; margin-bottom: .75rem; }
+    .result-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+    .result-sub { font-size: 14px; color: rgba(255,255,255,.5); text-align: center; margin-bottom: 1.5rem; }
+    .result-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 1.5rem; }
+    .rs-box { padding: 14px 8px; border-radius: 14px; text-align: center; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); }
+    .rs-box .r-lbl { font-size: 11px; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 5px; }
+    .rs-box .r-val { font-size: 22px; font-weight: 700; color: #c8aaff; }
+    .new-best { font-size: 13px; color: #00dc8c; text-align: center; margin-bottom: 1.25rem; font-weight: 600; }
+    .result-btns { display: flex; flex-direction: column; gap: 10px; }
+
+    @keyframes pop { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+    .pop { animation: pop .25s ease; }
+  </style>
+</head>
+<body>
+<div id="root">
+  <h1>Number Guessing Game</h1>
+  <p class="sub">Pick a difficulty and start guessing!</p>
+
+  <!-- START SCREEN -->
+  <div id="start-screen" class="screen active">
+    <p class="diff-label">Choose Difficulty</p>
+    <div class="diff-cards">
+      <div class="diff-card" id="card-easy" onclick="selectDiff('easy')">
+        <div class="d-icon">🟢</div>
+        <div class="d-name">Easy</div>
+        <div class="d-range">1 – 50</div>
+      </div>
+      <div class="diff-card selected" id="card-medium" onclick="selectDiff('medium')">
+        <div class="d-icon">🟡</div>
+        <div class="d-name">Medium</div>
+        <div class="d-range">1 – 100</div>
+      </div>
+      <div class="diff-card" id="card-hard" onclick="selectDiff('hard')">
+        <div class="d-icon">🔴</div>
+        <div class="d-name">Hard</div>
+        <div class="d-range">1 – 500</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-box">
+        <div class="i-label">Number Range</div>
+        <div class="i-val" id="info-range">1 – 100</div>
+      </div>
+      <div class="info-box">
+        <div class="i-label">High Score</div>
+        <div class="i-val" id="info-hs">0</div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="startGame()">▶ Start Game</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen" class="screen">
+    <div class="stats-row">
+      <div class="stat"><div class="lbl">Score</div><div class="val" id="s-score">0</div></div>
+      <div class="stat"><div class="lbl">Attempts</div><div class="val" id="s-tries">0</div></div>
+      <div class="stat"><div class="lbl">Time</div><div class="val" id="s-time">60s</div></div>
+      <div class="stat"><div class="lbl">Round</div><div class="val" id="s-round">1</div></div>
+    </div>
+    <p class="hint" id="g-hint">Guess a number between 1 and 100</p>
+    <div class="input-row">
+      <input type="number" id="guess-input" placeholder="Enter your guess..." />
+      <button id="guess-btn" onclick="guess()">Guess</button>
+    </div>
+    <div class="feedback f-idle" id="feedback">
+      <div class="msg">Make your first guess!</div>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="game-bottom">
+      <div class="hs">High Score: <span id="s-hs">0</span></div>
+      <button id="quit-btn" onclick="endGame(false)">✕ Quit</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="result-screen" class="screen">
+    <div class="result-icon" id="r-icon">🎉</div>
+    <div class="result-title" id="r-title">Game Over!</div>
+    <div class="result-sub" id="r-sub">Here's how you did</div>
+    <div class="result-stats">
+      <div class="rs-box"><div class="r-lbl">Score</div><div class="r-val" id="r-score">0</div></div>
+      <div class="rs-box"><div class="r-lbl">Rounds</div><div class="r-val" id="r-rounds">0</div></div>
+      <div class="rs-box"><div class="r-lbl">Best</div><div class="r-val" id="r-hs">0</div></div>
+    </div>
+    <div class="new-best" id="r-newbest" style="display:none">🏆 New High Score!</div>
+    <div class="result-btns">
+      <button class="btn-primary" onclick="playAgain()">▶ Play Again</button>
+      <button class="btn-secondary" onclick="goHome()">↩ Change Difficulty</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const MODES = { easy:{max:50,pts:10}, medium:{max:100,pts:20}, hard:{max:500,pts:50} };
+  let diff='medium', target, score=0, tries=0, round=1, timeLeft=60, timer=null, active=false;
+
+  const $=id=>document.getElementById(id);
+  const getHs=()=>parseInt(localStorage.getItem('ngg_hs')||'0');
+  const saveHs=v=>localStorage.setItem('ngg_hs',v);
+
+  $('info-hs').textContent=getHs();
+  $('s-hs').textContent=getHs();
+
+  function show(id){
+    ['start-screen','game-screen','result-screen'].forEach(s=>$(s).classList.remove('active'));
+    $(id).classList.add('active');
+  }
+
+  function selectDiff(d){
+    diff=d;
+    ['easy','medium','hard'].forEach(x=>$('card-'+x).classList.remove('selected'));
+    $('card-'+d).classList.add('selected');
+    $('info-range').textContent='1 – '+MODES[d].max;
+  }
+
+  function startGame(){ score=0; round=1; show('game-screen'); newRound(); }
+
+  function newRound(){
+    const cfg=MODES[diff];
+    target=Math.floor(Math.random()*cfg.max)+1;
+    tries=0; timeLeft=60; active=true;
+    $('s-score').textContent=score;
+    $('s-tries').textContent=0;
+    $('s-round').textContent=round;
+    $('g-hint').textContent=`Guess a number between 1 and ${cfg.max}`;
+    $('chips').innerHTML='';
+    $('guess-input').value='';
+    $('guess-input').disabled=false;
+    $('guess-btn').disabled=false;
+    setFeedback('idle','Make your first guess!','');
+    updateTimer();
+    clearInterval(timer);
+    timer=setInterval(()=>{ timeLeft--; updateTimer(); if(timeLeft<=0) endGame(true); },1000);
+    $('guess-input').focus();
+  }
+
+  function updateTimer(){
+    const el=$('s-time');
+    el.textContent=timeLeft+'s';
+    el.className='val'+(timeLeft<=10?' warn':'');
+  }
+
+  function setFeedback(type,msg,hint){
+    const box=$('feedback');
+    box.className='feedback f-'+type;
+    box.innerHTML=`<div class="msg">${msg}</div>${hint?`<div class="hint2">${hint}</div>`:''}`;
+    box.classList.add('pop');
+    setTimeout(()=>box.classList.remove('pop'),300);
+  }
+
+  function playTone(freq,dur,type='sine'){
+    try{
+      const ctx=new(window.AudioContext||window.webkitAudioContext)();
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type=type; o.frequency.value=freq;
+      g.gain.setValueAtTime(0.15,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+      o.start(); o.stop(ctx.currentTime+dur);
+    }catch(e){}
+  }
+
+  function addChip(val,kind){
+    const c=document.createElement('span');
+    c.className=`chip c-${kind}`;
+    c.textContent=val;
+    $('chips').appendChild(c);
+  }
+
+  function guess(){
+    if(!active) return;
+    const cfg=MODES[diff];
+    const g=parseInt($('guess-input').value);
+    if(isNaN(g)||g<1||g>cfg.max){ setFeedback('high',`Please enter a number between 1 and ${cfg.max}`,''); return; }
+    tries++;
+    $('s-tries').textContent=tries;
+    $('guess-input').value='';
+
+    if(g===target){
+      const pts=cfg.pts+Math.max(1,timeLeft);
+      score+=pts;
+      $('s-score').textContent=score;
+      if(score>getHs()){ saveHs(score); $('s-hs').textContent=score; }
+      addChip(g,'win');
+      setFeedback('win',`🎉 Correct! The number was ${target}`,`+${pts} pts • ${tries} attempt${tries>1?'s':''}`);
+      playTone(880,.35); setTimeout(()=>playTone(1100,.3),140); setTimeout(()=>playTone(1320,.4),260);
+      active=false;
+      setTimeout(()=>{ round++; newRound(); },1800);
+    } else if(g<target){
+      addChip(g,'low');
+      setFeedback('low','⬆ Too Low!',`${g} is below the number`);
+      playTone(300,.2,'triangle');
+    } else {
+      addChip(g,'high');
+      setFeedback('high','⬇ Too High!',`${g} is above the number`);
+      playTone(200,.2,'sawtooth');
+    }
+    $('guess-input').focus();
+  }
+
+  function endGame(timeout){
+    active=false; clearInterval(timer);
+    $('guess-input').disabled=true;
+    $('guess-btn').disabled=true;
+
+    const prevHs=getHs();
+    const isNewBest=score>prevHs;
+    if(isNewBest) saveHs(score);
+    const finalHs=getHs();
+
+    if(timeout){
+      $('r-icon').textContent='⏰';
+      $('r-title').textContent="Time's Up!";
+      $('r-sub').textContent=`The number was ${target}`;
+      playTone(150,.6,'sawtooth');
+    } else {
+      $('r-icon').textContent='👋';
+      $('r-title').textContent='Game Ended';
+      $('r-sub').textContent='You quit the game';
+    }
+
+    $('r-score').textContent=score;
+    $('r-rounds').textContent=Math.max(0, round-1);
+    $('r-hs').textContent=finalHs;
+    $('r-newbest').style.display=isNewBest?'block':'none';
+    $('info-hs').textContent=finalHs;
+    $('s-hs').textContent=finalHs;
+
+    setTimeout(()=>show('result-screen'), timeout?1200:0);
+  }
+
+  function playAgain(){ score=0; round=1; show('game-screen'); newRound(); }
+
+  function goHome(){ $('info-hs').textContent=getHs(); show('start-screen'); }
+
+  $('guess-input').addEventListener('keydown',e=>{ if(e.key==='Enter') guess(); });
+</script>
+</body>
+</html>

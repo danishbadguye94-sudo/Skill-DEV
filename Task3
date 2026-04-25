@@ -1,0 +1,842 @@
+# 🚀 Sudoku Pro -- Advanced Web-Based Sudoku Game
+
+Sudoku Pro is a feature-rich Sudoku web application built using HTML,
+CSS, and JavaScript.
+
+------------------------------------------------------------------------
+
+## 🔧 Features
+
+-   🧠 Backtracking Algorithm for puzzle generation & solving\
+-   🎯 Ensures unique Sudoku solutions\
+-   📊 Timer, Moves Counter & Progress Tracking\
+-   💡 Hint System for guided solving\
+-   🤖 Auto-Solve Feature\
+-   🎨 Multiple UI Themes (Neon, Classic, Minimal)\
+-   💾 Save & Resume Game using localStorage\
+-   🔊 Sound effects for better user experience\
+-   📱 Fully responsive & modern glassmorphism UI
+
+------------------------------------------------------------------------
+
+## ⚙️ Tech Stack
+
+-   HTML5 -- Structure\
+-   CSS3 -- Styling & animations\
+-   JavaScript (Vanilla JS) -- Game logic & algorithms
+
+------------------------------------------------------------------------
+
+## 🧩 Core Logic
+
+The game uses a **Backtracking Algorithm** to: - Generate valid Sudoku
+boards\
+- Remove numbers while maintaining a single unique solution\
+- Solve the puzzle efficiently
+
+------------------------------------------------------------------------
+
+## 📂 Project Structure
+
+/Sudoku-Pro\
+│── index.html\
+│── style.css\
+│── script.js
+
+------------------------------------------------------------------------
+
+## ▶️ How to Run
+
+1.  Download or clone the project\
+2.  Open `index.html` in any browser\
+3.  Start playing Sudoku 🎮
+
+------------------------------------------------------------------------
+
+## ▶️ How to Run
+
+1.  Download the files\
+2.  Open index.html in your browser\
+3.  Start playing 🎮
+
+------------------------------------------------------------------------
+
+## 🙌 Acknowledgement
+
+Developed as part of SkillCraft Technology Internship (Task 3)
+
+## 💻 Full Source Code
+
+### 📄 index.html
+
+``` html
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-color-theme="neon">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku Pro</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+
+<div class="bg-layer" id="bgLayer"></div>
+<div class="modal-overlay" id="winModal">
+  <div class="modal">
+    <div class="modal-icon">🏆</div><h2>SOLVED!</h2>
+    <p>Brilliant work! You've completed the puzzle.</p>
+    <div class="modal-stats">
+      <div class="modal-stat"><div class="label">Time</div><div class="value" id="modalTime">—</div></div>
+      <div class="modal-stat"><div class="label">Moves</div><div class="value" id="modalMoves">—</div></div>
+      <div class="modal-stat"><div class="label">Hints</div><div class="value" id="modalHints">—</div></div>
+    </div>
+    <button class="modal-btn" onclick="S.newGame()">Play Again</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="app-shell">
+  <header>
+    <div class="logo">Sudoku<span> Pro</span></div>
+    <div class="header-controls">
+      <button class="icon-btn" id="themeToggle" onclick="S.toggleTheme()" title="Theme">🌙</button>
+      <button class="icon-btn" onclick="S.showStats()" title="Stats">📊</button>
+      <button class="icon-btn" onclick="S.saveGame()" title="Save">💾</button>
+    </div>
+  </header>
+  <main class="main-content">
+    <aside class="side-panel side-panel-left">
+      <div class="glass-card"><div class="stat-label">Timer</div><div class="stat-value" id="timer">00:00</div></div>
+      <div class="glass-card"><div class="stat-label">Moves</div><div class="stat-value" id="moveCounter">0</div></div>
+      <div class="glass-card">
+        <div class="stat-label">Progress</div>
+        <div id="progressText" style="font-size:12px;color:var(--text-secondary);margin-top:2px;font-family:var(--fm)">0 / 81</div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+      </div>
+    </aside>
+    <div class="grid-container">
+      <div style="position:relative">
+        <div class="sudoku-grid" id="sudokuGrid"></div>
+        <div class="solving-overlay" id="solvingOverlay">SOLVING…</div>
+      </div>
+      <div class="numpad" id="numpad"></div>
+      <div class="action-row">
+        <button class="action-btn" onclick="S.useHint()"><span class="icon">💡</span>Hint</button>
+        <button class="action-btn" onclick="S.checkSolution()"><span class="icon">✔️</span>Check</button>
+        <button class="action-btn" onclick="S.autoSolve()"><span class="icon">🤖</span>Solve</button>
+        <button class="action-btn danger" onclick="S.newGame()"><span class="icon">🔄</span>New</button>
+      </div>
+    </div>
+    <aside class="side-panel">
+      <div class="glass-card" id="mobileStats" style="display:none">
+        <div style="display:flex;gap:16px">
+          <div><div class="stat-label">Time</div><div class="stat-value" id="timerMobile">00:00</div></div>
+          <div><div class="stat-label">Moves</div><div class="stat-value" id="movesMobile">0</div></div>
+        </div>
+        <div class="progress-bar-bg" style="margin-top:8px"><div class="progress-bar-fill" id="progressBarMobile" style="width:0%"></div></div>
+      </div>
+      <div class="glass-card"><div class="stat-label">Hints Left</div><div class="hints-display" id="hintsDisplay"></div></div>
+      <div class="glass-card">
+        <div class="stat-label">Difficulty</div>
+        <div class="diff-group" id="diffGroup">
+          <button class="diff-btn active" data-diff="easy" onclick="S.setDifficulty('easy')"><span class="dot"></span>Easy</button>
+          <button class="diff-btn" data-diff="medium" onclick="S.setDifficulty('medium')"><span class="dot"></span>Medium</button>
+          <button class="diff-btn" data-diff="hard" onclick="S.setDifficulty('hard')"><span class="dot"></span>Hard</button>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div class="stat-label">Theme</div>
+        <div class="theme-dots">
+          <div class="theme-dot active" data-color="neon" style="background:linear-gradient(135deg,#00ffc8,#7b6fff)" onclick="S.setColorTheme('neon')" title="Neon"></div>
+          <div class="theme-dot" data-color="classic" style="background:linear-gradient(135deg,#4f8ef7,#f74f8e)" onclick="S.setColorTheme('classic')" title="Classic"></div>
+          <div class="theme-dot" data-color="minimal" style="background:linear-gradient(135deg,#e8d5b0,#c9a87c)" onclick="S.setColorTheme('minimal')" title="Minimal"></div>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div class="stat-label">Best Time</div>
+        <div class="stat-value" id="bestTime">—</div>
+        <div style="font-size:10px;color:var(--text-secondary);margin-top:2px;font-family:var(--fm)" id="bestDiff"></div>
+      </div>
+    </aside>
+  </main>
+  <footer>SUDOKU PRO · Built with ♥ · Backtracking Engine</footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+```
+
+------------------------------------------------------------------------
+
+### 🎨 style.css
+
+``` css
+:root {
+  --bg: #08090d;
+  --surface: rgba(255,255,255,0.04);
+  --surface-hover: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.08);
+  --border-accent: rgba(0,255,200,0.4);
+  --text-primary: #e8edf2;
+  --text-secondary: rgba(232,237,242,0.5);
+  --accent: #00ffc8;
+  --accent2: #7b6fff;
+  --error: #ff4f6d;
+  --hint: #f7c948;
+  --fixed-bg: rgba(255,255,255,0.06);
+  --selected: rgba(0,255,200,0.12);
+  --highlight: rgba(0,255,200,0.06);
+  --cell-size: clamp(34px, 7.5vw, 50px);
+  --radius: 16px;
+  --glow: 0 0 20px rgba(0,255,200,0.2);
+  --fd: 'Orbitron', monospace;
+  --fm: 'DM Mono', monospace;
+  --fb: 'Syne', sans-serif;
+}
+
+[data-color-theme="classic"] {
+  --accent: #4f8ef7;  --accent2: #f74f8e;
+  --border-accent: rgba(79,142,247,0.4);
+  --selected: rgba(79,142,247,0.12);
+  --highlight: rgba(79,142,247,0.06);
+  --glow: 0 0 20px rgba(79,142,247,0.2);
+}
+
+[data-color-theme="minimal"] {
+  --accent: #e8d5b0;  --accent2: #c9a87c;
+  --border-accent: rgba(232,213,176,0.4);
+  --selected: rgba(232,213,176,0.1);
+  --highlight: rgba(232,213,176,0.05);
+  --glow: 0 0 20px rgba(232,213,176,0.15);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--fb);
+  background: var(--bg);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  transition: background 0.4s, color 0.4s;
+}
+
+.bg-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+
+.bg-num {
+  position: absolute;
+  font-family: var(--fd);
+  font-size: clamp(40px, 8vw, 120px);
+  font-weight: 900;
+  color: var(--accent);
+  opacity: 0.025;
+  animation: floatNum linear infinite;
+  user-select: none;
+}
+
+@keyframes floatNum {
+  from { transform: translateY(110vh) rotate(var(--rot)); }
+  to   { transform: translateY(-20vh) rotate(var(--rot)); }
+}
+
+/* ── Layout ── */
+.app-shell {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+  overflow: hidden;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-family: var(--fd);
+  font-size: clamp(16px, 4vw, 24px);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  text-shadow: 0 0 20px currentColor;
+  text-transform: uppercase;
+}
+.logo span { color: var(--text-primary); }
+
+.header-controls { display: flex; gap: 8px; align-items: center; }
+
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 10px 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.side-panel { display: flex; flex-direction: column; gap: 8px; min-width: 160px; }
+
+.glass-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  backdrop-filter: blur(16px);
+  transition: border-color 0.2s;
+}
+.glass-card:hover { border-color: var(--border-accent); }
+
+.icon-btn, .num-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn {
+  width: 38px;  height: 38px;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+.icon-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--surface-hover); }
+
+.stat-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-family: var(--fm);
+}
+.stat-value {
+  font-family: var(--fd);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 12px currentColor;
+}
+
+.diff-group { display: flex; flex-direction: column; gap: 4px; }
+
+.diff-btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--fm);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.diff-btn:hover, .diff-btn.active { border-color: var(--accent); color: var(--accent); }
+.diff-btn.active { background: rgba(0,255,200,0.1); }
+.diff-btn .dot {
+  display: inline-block;
+  width: 6px;  height: 6px;
+  border-radius: 50%;
+  margin-right: 8px;
+  background: currentColor;
+}
+
+.progress-bar-bg {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+  margin-top: 6px;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.hints-display { display: flex; gap: 4px; margin-top: 6px; }
+.hint-dot {
+  width: 10px;  height: 10px;
+  border-radius: 50%;
+  background: var(--hint);
+  box-shadow: 0 0 8px var(--hint);
+  transition: all 0.3s;
+}
+.hint-dot.used { background: var(--border); box-shadow: none; }
+
+.theme-dots { display: flex; gap: 8px; margin-top: 8px; }
+.theme-dot {
+  width: 20px;  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+.theme-dot:hover, .theme-dot.active { border-color: var(--text-primary); transform: scale(1.2); }
+
+.grid-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+.sudoku-grid {
+  display: grid;
+  grid-template-columns: repeat(9, var(--cell-size));
+  grid-template-rows: repeat(9, var(--cell-size));
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--glow), 0 0 60px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.sudoku-cell {
+  width: var(--cell-size);  height: var(--cell-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fd);
+  font-size: clamp(14px, 3vw, 22px);
+  font-weight: 700;
+  border: 0.5px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.sudoku-cell[data-col="2"], .sudoku-cell[data-col="5"] { border-right: 2px solid rgba(255,255,255,0.2); }
+.sudoku-cell[data-row="2"], .sudoku-cell[data-row="5"] { border-bottom: 2px solid rgba(255,255,255,0.2); }
+
+.sudoku-cell.fixed         { background: var(--fixed-bg); cursor: default; }
+.sudoku-cell.user-input    { color: var(--accent); }
+.sudoku-cell.selected      { background: var(--selected) !important; }
+.sudoku-cell.highlighted   { background: var(--highlight); }
+.sudoku-cell.error         { color: var(--error) !important; background: rgba(255,79,109,0.1) !important; }
+.sudoku-cell.hint-cell     { color: var(--hint) !important; animation: hintPop 0.5s ease; }
+.sudoku-cell.correct-flash { animation: correctFlash 0.6s ease; }
+
+@keyframes hintPop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes correctFlash {
+  0%, 100% { background: transparent; }
+  50%       { background: rgba(0,255,200,0.25); }
+}
+
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  width: 100%;
+  max-width: calc(var(--cell-size) * 9);
+}
+
+.num-btn {
+  height: 36px;
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-family: var(--fd);
+  font-size: 15px;
+  font-weight: 700;
+  transition: all 0.15s;
+}
+.num-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--surface-hover); transform: translateY(-1px); }
+.num-btn:active { transform: translateY(1px); }
+.num-btn.erase { color: var(--error); border-color: rgba(255,79,109,0.3); font-size: 18px; }
+.num-btn.erase:hover { background: rgba(255,79,109,0.1); border-color: var(--error); }
+
+.action-row { display: flex; gap: 6px; width: 100%; max-width: calc(var(--cell-size) * 9); }
+
+.action-btn {
+  flex: 1;
+  min-width: 60px;
+  padding: 7px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-family: var(--fb);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.action-btn .icon { font-size: 14px; }
+.action-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--surface-hover); }
+.action-btn.danger:hover { border-color: var(--error); color: var(--error); background: rgba(255,79,109,0.08); }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--bg);
+  border: 1px solid var(--border-accent);
+  border-radius: 24px;
+  padding: 40px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: var(--glow), 0 30px 80px rgba(0,0,0,0.6);
+  transform: translateY(30px) scale(0.95);
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.modal-overlay.show .modal { transform: translateY(0) scale(1); }
+
+.modal-icon { font-size: 64px; margin-bottom: 16px; animation: iconBounce 0.6s 0.3s both; }
+@keyframes iconBounce { from { transform: scale(0); } to { transform: scale(1); } }
+
+.modal h2 { font-family: var(--fd); font-size: 28px; color: var(--accent); margin-bottom: 8px; text-shadow: 0 0 20px currentColor; }
+.modal p  { color: var(--text-secondary); margin-bottom: 24px; font-size: 14px; line-height: 1.6; }
+
+.modal-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 24px; }
+.modal-stat  { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.modal-stat .label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px; }
+.modal-stat .value { font-family: var(--fd); font-size: 18px; color: var(--accent); }
+
+.modal-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  color: #000;
+  font-family: var(--fd);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+  text-transform: uppercase;
+}
+.modal-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.solving-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  font-family: var(--fd);
+  color: var(--accent);
+  font-size: 13px;
+  letter-spacing: 0.15em;
+}
+.solving-overlay.show { opacity: 1; pointer-events: all; }
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface);
+  border: 1px solid var(--border-accent);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-family: var(--fm);
+  font-size: 12px;
+  color: var(--accent);
+  backdrop-filter: blur(16px);
+  z-index: 300;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.confetti-piece {
+  position: fixed;
+  width: 8px;  height: 8px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 200;
+  animation: confettiFall 3s ease-in forwards;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+footer {
+  border-top: 1px solid var(--border);
+  padding: 8px 0;
+  text-align: center;
+  font-family: var(--fm);
+  font-size: 11px;
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 900px) {
+  .side-panel-left { display: none; }
+  .main-content    { grid-template-columns: 1fr auto; }
+}
+@media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .side-panel { min-width: 0; } .action-btn { min-width: 60px; } }
+```
+
+------------------------------------------------------------------------
+
+### ⚙️ script.js
+
+``` javascript
+const S=(()=>{
+  let board,solution,fixed,userErrors,sel=-1,diff='easy',hints=5,moves=0,secs=0,timer=null,won=false,actx=null;
+  const REMOVE={easy:36,medium:46,hard:54};
+  const $=id=>document.getElementById(id);
+
+  // Audio
+  function tone(f,t='sine',d=.12,v=.15){
+    try{
+      if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+      const o=actx.createOscillator(),g=actx.createGain();
+      o.connect(g);g.connect(actx.destination);o.type=t;o.frequency.value=f;
+      g.gain.setValueAtTime(v,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);
+      o.start();o.stop(actx.currentTime+d);
+    }catch(e){}
+  }
+  const playWin=()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,'sine',.3,.12),i*120));
+
+  // Engine
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+  function isValid(g,idx,n){
+    const r=idx/9|0,c=idx%9,br=(r/3|0)*3,bc=(c/3|0)*3;
+    for(let i=0;i<9;i++)if(g[r*9+i]===n||g[i*9+c]===n||g[(br+(i/3|0))*9+bc+(i%3)]===n)return false;
+    return true;
+  }
+  function solve(g){
+    const i=g.indexOf(0);if(i<0)return true;
+    for(const n of shuffle([1,2,3,4,5,6,7,8,9]))if(isValid(g,i,n)){g[i]=n;if(solve(g))return true;g[i]=0}
+    return false;
+  }
+  function countSols(g,lim=2){
+    let c=0;
+    (function bt(g){if(c>=lim)return;const i=g.indexOf(0);if(i<0){c++;return}for(let n=1;n<=9;n++)if(isValid(g,i,n)){g[i]=n;bt(g);g[i]=0}})([...g]);
+    return c;
+  }
+  function gen(){
+    solution=Array(81).fill(0);solve(solution);board=[...solution];fixed=Array(81).fill(true);
+    let r=0;for(const i of shuffle([...Array(81).keys()])){
+      if(r>=REMOVE[diff])break;const b=board[i];board[i]=0;fixed[i]=false;
+      if(countSols(board)!==1){board[i]=b;fixed[i]=true}else r++;
+    }
+    userErrors=Array(81).fill(false);
+  }
+
+  // Timer
+  const fmt=s=>`${(s/60|0).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+  function startTimer(){stopTimer();secs=0;tick();timer=setInterval(()=>{secs++;tick()},1000)}
+  function stopTimer(){clearInterval(timer);timer=null}
+  function tick(){const t=fmt(secs);$('timer').textContent=t;const m=$('timerMobile');if(m)m.textContent=t}
+
+  // Render
+  function renderGrid(){
+    const g=$('sudokuGrid');g.innerHTML='';
+    for(let i=0;i<81;i++){
+      const c=document.createElement('div');
+      c.className='sudoku-cell'+(fixed[i]?' fixed':'');
+      c.dataset.idx=i;c.dataset.row=i/9|0;c.dataset.col=i%9;
+      if(board[i])c.textContent=board[i];
+      c.onclick=()=>pick(i);g.appendChild(c);
+    }
+  }
+  function updateCell(i){
+    const c=document.querySelector(`[data-idx="${i}"]`);if(!c)return;
+    c.textContent=board[i]||'';c.classList.remove('error','user-input','hint-cell');
+    if(!fixed[i]&&board[i])c.classList.add(userErrors[i]?'error':'user-input');
+  }
+  function highlight(si){
+    const sr=si/9|0,sc=si%9,sbr=(sr/3|0)*3,sbc=(sc/3|0)*3,sv=board[si];
+    document.querySelectorAll('.sudoku-cell').forEach((c,i)=>{
+      c.classList.remove('selected','highlighted');
+      const r=i/9|0,cc=i%9;
+      if(i===si)c.classList.add('selected');
+      else if(r===sr||cc===sc||((r/3|0)*3===sbr&&(cc/3|0)*3===sbc))c.classList.add('highlighted');
+      if(sv&&board[i]===sv&&i!==si)c.classList.add('selected');
+    });
+  }
+  function updateProgress(){
+    const f=board.filter(v=>v).length,p=Math.round(f/81*100)+'%';
+    $('progressBar').style.width=p;const m=$('progressBarMobile');if(m)m.style.width=p;
+    $('progressText').textContent=`${f} / 81`;
+  }
+  function updateMoves(){$('moveCounter').textContent=moves;const m=$('movesMobile');if(m)m.textContent=moves}
+  function renderHints(){$('hintsDisplay').innerHTML=[...Array(5)].map((_,i)=>`<div class="hint-dot${i>=hints?' used':''}"></div>`).join('')}
+  function flash(el,cls){if(el){el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),600)}}
+
+  // Interactions
+  function pick(i){if(!won){sel=i;highlight(i)}}
+  function inputNumber(n){
+    if(sel<0||fixed[sel]||won)return;
+    tone(600,'sine',.08,.1);board[sel]=n;userErrors[sel]=solution[sel]!==n;moves++;
+    updateCell(sel);updateMoves();updateProgress();highlight(sel);
+    if(!userErrors[sel])flash(document.querySelector(`[data-idx="${sel}"]`),'correct-flash');
+    else tone(180,'sawtooth',.25,.15);
+    checkWin();saveGame();
+  }
+  function erase(){
+    if(sel<0||fixed[sel]||won)return;
+    board[sel]=0;userErrors[sel]=false;moves++;updateCell(sel);updateMoves();updateProgress();highlight(sel);saveGame();
+  }
+  function useHint(){
+    if(!hints)return toast('No hints remaining!');
+    if(sel<0)return toast('Select a cell first');
+    if(fixed[sel])return toast('This cell is fixed');
+    if(board[sel]===solution[sel]&&board[sel])return toast('Cell is already correct!');
+    tone(880,'sine',.2,.1);setTimeout(()=>tone(1100,'sine',.2,.08),100);
+    board[sel]=solution[sel];userErrors[sel]=false;hints--;
+    flash(document.querySelector(`[data-idx="${sel}"]`),'hint-cell');
+    updateCell(sel);updateProgress();renderHints();highlight(sel);checkWin();saveGame();
+  }
+  function checkSolution(){
+    let err=false;
+    board.forEach((v,i)=>{if(!fixed[i]&&v){userErrors[i]=v!==solution[i];if(userErrors[i])err=true;updateCell(i)}});
+    if(err){tone(180,'sawtooth',.25,.15);toast('Some cells have errors!')}else toast('Looking good! No errors found ✓');
+  }
+  function autoSolve(){
+    if(won)return;const o=$('solvingOverlay');o.classList.add('show');
+    setTimeout(()=>{board=[...solution];fixed=Array(81).fill(true);userErrors=Array(81).fill(false);
+      renderGrid();updateProgress();o.classList.remove('show');stopTimer();toast('Puzzle auto-solved!');saveGame()},600);
+  }
+  function checkWin(){
+    if(board.every(v=>v)&&board.every((v,i)=>v===solution[i])&&!won){
+      won=true;stopTimer();playWin();
+      setTimeout(()=>{
+        $('modalTime').textContent=fmt(secs);$('modalMoves').textContent=moves;$('modalHints').textContent=5-hints;
+        $('winModal').classList.add('show');launchConfetti();saveBestTime();
+      },400);
+    }
+  }
+  function launchConfetti(){
+    const C=['#00ffc8','#7b6fff','#f7c948','#ff4f6d','#4f8ef7'];
+    for(let i=0;i<60;i++)setTimeout(()=>{
+      const e=document.createElement('div');e.className='confetti-piece';
+      e.style.cssText=`left:${Math.random()*100}vw;top:-20px;background:${C[Math.random()*5|0]};animation-duration:${2+Math.random()*2}s;animation-delay:${Math.random()*.5}s`;
+      document.body.appendChild(e);setTimeout(()=>e.remove(),4000);
+    },i*30);
+  }
+  function newGame(){
+    $('winModal').classList.remove('show');won=false;moves=0;hints=5;sel=-1;
+    gen();renderGrid();updateMoves();updateProgress();renderHints();startTimer();loadBestTime();saveGame();
+    toast(`New ${diff} puzzle started!`);
+  }
+  function setDifficulty(d){
+    diff=d;document.querySelectorAll('.diff-btn').forEach(b=>b.classList.toggle('active',b.dataset.diff===d));newGame();
+  }
+  function toggleTheme(){
+    const h=document.documentElement,dark=h.getAttribute('data-theme')==='dark';
+    h.setAttribute('data-theme',dark?'light':'dark');$('themeToggle').textContent=dark?'☀️':'🌙';
+    localStorage.setItem('sp-theme',dark?'light':'dark');
+  }
+  function setColorTheme(t){
+    document.documentElement.setAttribute('data-color-theme',t);
+    document.querySelectorAll('.theme-dot').forEach(d=>d.classList.toggle('active',d.dataset.color===t));
+    localStorage.setItem('sp-color-theme',t);
+  }
+  function saveGame(){localStorage.setItem('sp-save',JSON.stringify({board,fixed,solution,diff,moves,secs,hints}))}
+  function loadGame(){
+    try{
+      const s=JSON.parse(localStorage.getItem('sp-save'));if(!s)return false;
+      board=s.board;fixed=s.fixed;solution=s.solution;diff=s.diff||'easy';
+      moves=s.moves||0;secs=s.secs||0;hints=s.hints??5;
+      userErrors=Array(81).fill(false);board.forEach((v,i)=>{if(!fixed[i]&&v)userErrors[i]=v!==solution[i]});
+      return true;
+    }catch(e){return false}
+  }
+  function saveBestTime(){
+    const k=`sp-best-${diff}`,p=+localStorage.getItem(k)||Infinity;
+    if(secs<p){localStorage.setItem(k,secs);loadBestTime()}
+  }
+  function loadBestTime(){
+    const b=+localStorage.getItem(`sp-best-${diff}`);
+    $('bestTime').textContent=b?fmt(b):'—';$('bestDiff').textContent=b?diff.toUpperCase():'';
+  }
+  let toastT;
+  function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2500)}
+  function showStats(){const f=board.filter(v=>v).length,e=userErrors.filter(Boolean).length;toast(`Accuracy:${f?Math.round((f-e)/f*100):0}% · Filled:${f}/81 · Errors:${e}`)}
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    // BG nums
+    const L=$('bgLayer');
+    for(let i=0;i<20;i++){const e=document.createElement('div');e.className='bg-num';e.textContent=(Math.random()*9|0)+1;
+      e.style.left=Math.random()*100+'vw';e.style.setProperty('--rot',(Math.random()*40-20)+'deg');
+      e.style.animationDuration=(15+Math.random()*20)+'s';e.style.animationDelay=-(Math.random()*30)+'s';L.appendChild(e)}
+    // Numpad
+    const np=$('numpad');
+    for(let i=1;i<=9;i++){const b=document.createElement('button');b.className='num-btn';b.textContent=i;b.onclick=()=>inputNumber(i);np.appendChild(b)}
+    const er=document.createElement('button');er.className='num-btn erase';er.textContent='⌫';er.onclick=erase;np.appendChild(er);
+    // Theme restore
+    const th=localStorage.getItem('sp-theme')||'dark';
+    document.documentElement.setAttribute('data-theme',th);$('themeToggle').textContent=th==='dark'?'🌙':'☀️';
+    setColorTheme(localStorage.getItem('sp-color-theme')||'neon');
+    // Start
+    if(!loadGame())gen();
+    renderGrid();updateMoves();updateProgress();renderHints();
+    document.querySelectorAll('.diff-btn').forEach(b=>b.classList.toggle('active',b.dataset.diff===diff));
+    startTimer();loadBestTime();
+    document.addEventListener('keydown',e=>{
+      if(won)return;
+      if(e.key>='1'&&e.key<='9'){inputNumber(+e.key);return}
+      if(['Backspace','Delete','0'].includes(e.key)){erase();return}
+      if(sel<0)return;
+      const d={ArrowUp:-9,ArrowDown:9,ArrowLeft:-1,ArrowRight:1}[e.key];
+      if(d!=null){e.preventDefault();const n=sel+d;if(n>=0&&n<81)pick(n)}
+    });
+    const chk=()=>$('mobileStats').style.display=window.innerWidth<=900?'block':'none';
+    window.addEventListener('resize',chk);chk();
+  });
+  return{inputNumber,erase,useHint,checkSolution,autoSolve,newGame,setDifficulty,toggleTheme,setColorTheme,saveGame,showStats};
+})();
+```
+
+

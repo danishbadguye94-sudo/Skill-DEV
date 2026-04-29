@@ -1,3 +1,64 @@
+# 🎯 Number Guessing Game — Modern Web Game
+
+A modern and interactive Number Guessing Game built using HTML, CSS, and Vanilla JavaScript with beautiful UI, sound effects, difficulty levels, timer system, and score tracking.
+
+---
+
+# 🚀 Features
+
+## 🎮 Gameplay Features
+
+- 🎯 Multiple Difficulty Levels
+- ⏱️ Countdown Timer
+- 🏆 High Score System
+- 🔊 Sound Effects
+- 📊 Live Score Tracking
+- 🔁 Multi-Round Gameplay
+- 💾 localStorage High Score Saving
+- 🎨 Animated Feedback System
+- 📱 Responsive Design
+
+---
+
+# 🎨 UI Features
+
+- 🌌 Modern Gradient Background
+- ✨ Glassmorphism Design
+- 🟢 Difficulty Cards
+- 🎯 Interactive Buttons
+- 📦 Animated Chips
+- 📊 Stylish Result Screen
+- ⚡ Smooth Hover Effects
+
+---
+
+# ⚙️ Technologies Used
+
+| Technology | Purpose |
+|---|---|
+| HTML5 | Structure |
+| CSS3 | Styling |
+| JavaScript | Game Logic |
+| localStorage | Save High Score |
+| Web Audio API | Sound Effects |
+
+---
+
+# 📂 Project Structure
+
+```bash
+number-guessing-game/
+│
+└── index.html
+```
+
+---
+
+# 🌐 Full Source Code
+
+## 📄 index.html
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -388,3 +449,61 @@
 </script>
 </body>
 </html>
+
+```
+
+---
+
+# ▶️ How to Run
+
+1. Download the project
+2. Open `index.html`
+3. Start playing 🎮
+
+---
+
+# 🎮 Difficulty Levels
+
+| Difficulty | Range | Points |
+|---|---|---|
+| Easy | 1 – 50 | 10 |
+| Medium | 1 – 100 | 20 |
+| Hard | 1 – 500 | 50 |
+
+---
+
+# 📊 Game Features
+
+- Real-time feedback
+- Too high / too low hints
+- Auto score updates
+- Timer countdown
+- Multi-round gameplay
+- Responsive UI
+- Local high score saving
+
+---
+
+# 🔥 Future Improvements
+
+- Multiplayer Mode
+- Leaderboard System
+- Theme Customization
+- AI Opponent
+- Mobile App Version
+- Online Score Sync
+
+---
+
+# 👨‍💻 Author
+
+Built using:
+- HTML5
+- CSS3
+- JavaScript
+
+---
+
+# ⭐ Final Result
+
+A modern Number Guessing Game featuring beautiful UI, animations, sound effects, timer mechanics, and responsive gameplay experience.

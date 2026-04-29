@@ -1,0 +1,628 @@
+# 🚀 ScrapeX — Advanced E-Commerce Product Scraper
+
+ScrapeX is a modern and professional E-Commerce Product Scraper Web Application built using HTML, CSS, JavaScript, Flask, BeautifulSoup, Requests, and Pandas.
+
+---
+
+# 🔥 Features
+
+- 🖥️ Modern Glassmorphism UI
+- 🌌 Dark Gradient Background
+- 📱 Responsive Design
+- 🔍 Search Products
+- ⭐ Filter Products by Rating
+- 📥 Download CSV
+- ⚡ Real-Time Product Rendering
+- 🕷️ BeautifulSoup Web Scraping
+- 🐍 Flask Backend
+- 📄 CSV Export Support
+
+---
+
+# ⚙️ Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| HTML5 | Structure |
+| CSS3 | Styling |
+| JavaScript | Frontend Logic |
+| Flask | Backend |
+| BeautifulSoup4 | Web Scraping |
+| Requests | HTTP Requests |
+| Pandas | CSV Export |
+
+---
+
+# 📂 Project Structure
+
+```bash
+product-scraper/
+│
+├── templates/
+│   └── index.html
+│
+├── static/
+│   ├── style.css
+│   └── script.js
+│
+├── app.py
+├── scraper.py
+├── products.csv
+└── requirements.txt
+```
+
+---
+
+# 🌐 index.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScrapeX</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="background"></div>
+
+<div class="container">
+
+    <header>
+        <h1>ScrapeX Dashboard</h1>
+        <p>Modern E-Commerce Product Scraper</p>
+    </header>
+
+    <div class="glass-card controls">
+        <input type="text" id="urlInput" placeholder="Paste website URL here...">
+
+        <div class="buttons">
+            <button id="scrapeBtn">Start Scraping</button>
+            <button id="downloadBtn">Download CSV</button>
+            <button id="clearBtn">Clear Data</button>
+        </div>
+
+        <div class="search-filter">
+            <input type="text" id="searchInput" placeholder="Search products...">
+
+            <select id="ratingFilter">
+                <option value="">All Ratings</option>
+                <option value="One">1 Star</option>
+                <option value="Two">2 Star</option>
+                <option value="Three">3 Star</option>
+                <option value="Four">4 Star</option>
+                <option value="Five">5 Star</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="loader hidden" id="loader"></div>
+
+    <div class="table-container glass-card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Rating</th>
+                    <th>Availability</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+
+            <tbody id="productTable"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+```
+
+---
+
+# 🎨 style.css
+
+```css
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a, #1e1b4b, #111827);
+    color: white;
+    overflow-x: hidden;
+}
+
+.background {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at top left, #4f46e5, transparent 30%),
+        radial-gradient(circle at bottom right, #06b6d4, transparent 30%);
+    z-index: -1;
+}
+
+.container {
+    width: 95%;
+    margin: auto;
+    padding: 30px 0;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+header p {
+    opacity: 0.8;
+}
+
+.glass-card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.controls {
+    margin-bottom: 20px;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 12px;
+    outline: none;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 16px;
+}
+
+input::placeholder {
+    color: rgba(255,255,255,0.7);
+}
+
+.buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+button {
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+    color: white;
+    cursor: pointer;
+    transition: 0.3s ease;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+button:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 0 20px #3b82f6;
+}
+
+.search-filter {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.table-container {
+    overflow-x: auto;
+    max-height: 600px;
+    margin-top: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    position: sticky;
+    top: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+}
+
+th,
+td {
+    padding: 15px;
+    text-align: center;
+}
+
+th {
+    font-size: 16px;
+}
+
+tr {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+tr:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+td img {
+    width: 60px;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+td img:hover {
+    transform: scale(1.1);
+}
+
+a {
+    color: #60a5fa;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.loader {
+    width: 70px;
+    height: 70px;
+    border: 8px solid rgba(255,255,255,0.2);
+    border-top: 8px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+.hidden {
+    display: none;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@media(max-width: 768px) {
+
+    .buttons {
+        flex-direction: column;
+    }
+
+    .search-filter {
+        grid-template-columns: 1fr;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+
+    th,
+    td {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+}
+```
+
+---
+
+# ⚡ script.js
+
+```javascript
+const scrapeBtn = document.getElementById('scrapeBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const clearBtn = document.getElementById('clearBtn');
+const productTable = document.getElementById('productTable');
+const loader = document.getElementById('loader');
+const searchInput = document.getElementById('searchInput');
+const ratingFilter = document.getElementById('ratingFilter');
+
+let allProducts = [];
+
+// START SCRAPING
+scrapeBtn.addEventListener('click', async () => {
+
+    const url = document.getElementById('urlInput').value;
+
+    if (!url) {
+        alert('Please enter a website URL');
+        return;
+    }
+
+    loader.classList.remove('hidden');
+
+    try {
+
+        const response = await fetch('/scrape', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ url: url })
+        });
+
+        const data = await response.json();
+
+        loader.classList.add('hidden');
+
+        if (data.success) {
+
+            allProducts = data.products;
+            displayProducts(allProducts);
+
+        } else {
+
+            alert(data.message);
+
+        }
+
+    } catch (error) {
+
+        loader.classList.add('hidden');
+        console.log(error);
+
+        alert('Something went wrong');
+
+    }
+
+});
+
+// DISPLAY PRODUCTS
+function displayProducts(products) {
+
+    productTable.innerHTML = '';
+
+    products.forEach(product => {
+
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+            <td>
+                <img src="${product.image}" width="60">
+            </td>
+
+            <td>${product.name}</td>
+            <td>${product.price}</td>
+            <td>${product.rating}</td>
+            <td>${product.availability}</td>
+
+            <td>
+                <a href="${product.link}" target="_blank">
+                    View
+                </a>
+            </td>
+        `;
+
+        productTable.appendChild(row);
+
+    });
+
+}
+
+// SEARCH PRODUCTS
+searchInput.addEventListener('input', () => {
+
+    const value = searchInput.value.toLowerCase();
+
+    const filtered = allProducts.filter(product =>
+        product.name.toLowerCase().includes(value)
+    );
+
+    displayProducts(filtered);
+
+});
+
+// FILTER PRODUCTS
+ratingFilter.addEventListener('change', () => {
+
+    const rating = ratingFilter.value;
+
+    if (!rating) {
+        displayProducts(allProducts);
+        return;
+    }
+
+    const filtered = allProducts.filter(product =>
+        product.rating === rating
+    );
+
+    displayProducts(filtered);
+
+});
+
+// DOWNLOAD CSV
+downloadBtn.addEventListener('click', () => {
+
+    window.location.href = '/download';
+
+});
+
+// CLEAR DATA
+clearBtn.addEventListener('click', () => {
+
+    productTable.innerHTML = '';
+    searchInput.value = '';
+    ratingFilter.value = '';
+
+});
+```
+---
+
+# 🐍 app.py
+
+```python
+from flask import Flask, render_template, request, jsonify, send_file
+from scraper import scrape_products
+import pandas as pd
+import os
+
+app = Flask(__name__)
+
+CSV_FILE = 'products.csv'
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/scrape', methods=['POST'])
+def scrape():
+    data = request.get_json()
+    url = data.get('url')
+
+    if not url:
+        return jsonify({'success': False, 'message': 'URL is required'})
+
+    try:
+        products = scrape_products(url)
+
+        if not products:
+            return jsonify({'success': False, 'message': 'No products found'})
+
+        df = pd.DataFrame(products)
+        df.to_csv(CSV_FILE, index=False)
+
+        return jsonify({
+            'success': True,
+            'products': products
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/download')
+def download_csv():
+    if os.path.exists(CSV_FILE):
+        return send_file(CSV_FILE, as_attachment=True)
+    return jsonify({'success': False, 'message': 'CSV file not found'})
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+---
+
+# 🕷️ scraper.py
+
+```python
+import requests
+from bs4 import BeautifulSoup
+
+BASE_URL = "https://books.toscrape.com/"
+
+
+def scrape_products(url):
+    headers = {
+        'User-Agent': 'Mozilla/5.0'
+    }
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        raise Exception('Failed to fetch website')
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    product_cards = soup.find_all('article', class_='product_pod')
+
+    products = []
+
+    for product in product_cards:
+        name = product.h3.a['title']
+
+        price = product.find('p', class_='price_color').text
+
+        rating = product.find('p')['class'][1]
+
+        availability = 'In Stock'
+
+        image = BASE_URL + product.find('img')['src'].replace('../', '')
+
+        link = BASE_URL + 'catalogue/' + product.h3.a['href']
+
+        products.append({
+            'name': name,
+            'price': price,
+            'rating': rating,
+            'availability': availability,
+            'image': image,
+            'link': link
+        })
+
+    return products
+```
+
+---
+
+# 📦 requirements.txt
+
+```txt
+Flask
+beautifulsoup4
+requests
+pandas
+```
+
+---
+
+# ▶️ Installation Guide
+
+## Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## Run Flask App
+
+```bash
+python app.py
+```
+
+## Open Browser
+
+```txt
+http://127.0.0.1:5000
+```
+
+---
+
+# 🧪 Demo Website
+
+```txt
+https://books.toscrape.com/
+```
+
+---
+
+# ⭐ Final Result
+
+ScrapeX is a modern SaaS-style E-Commerce Product Scraper capable of scraping products dynamically and exporting them into CSV format with a responsive professional UI.
